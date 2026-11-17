@@ -1,0 +1,28 @@
+# Maxfiy kalitlar va tokenlar (ENG MUHIMI!)
+.env
+.env.*
+*.json
+!requirements.json
+
+# SQLite ma'lumotlar bazasi
+*.db
+*.sqlite
+*.sqlite3
+
+# Python virtual muhit va kesh fayllari
+venv/
+.venv/
+env/
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# IDE va tizim fayllari (VS Code, PyCharm, Windows)
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Loglar
+*.log
