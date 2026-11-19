@@ -1,3 +1,4 @@
+import random
 ﻿import asyncio
 import logging
 import os
@@ -129,6 +130,9 @@ async def ig_get_user_profile(igsid: str) -> Tuple[str, str]:
     return "", f"ID:{igsid}"
 
 
+_IN_FLIGHT_COMMENTS: set[str] = set()
+
+
 async def ig_reply_to_comment(comment_id: str, message_text: str) -> bool:
     """Instagram post/Reels izohi ostiga ommaviy javob yozish."""
     if not IG_ACCESS_TOKEN or not message_text:
@@ -218,26 +222,32 @@ async def send_initial_comment_dm(
     - Agar 7 kunlik limit sababli DM ketmasa, izoh ostiga "Directimizga yozing" deb yozadi.
     - Har qanday holatda ham kommentni bazaga "ko'rildi" deb belgilaydi.
     """
-    if await is_ig_comment_processed(comment_id):
+    if comment_id in _IN_FLIGHT_COMMENTS or await is_ig_comment_processed(comment_id):
         return
+    _IN_FLIGHT_COMMENTS.add(comment_id)
 
     if await is_ig_user_recently_messaged(commenter_id):
         await mark_ig_comment_processed(comment_id, commenter_id, commenter_username)
         return
 
     kw_match = await crm_sheets.get_keyword_data(comment_text)
+    reply_variants = [
+        "Directingizga batafsil ma'lumot va narxlarni yubordik, bir ko‘rib chiqing 😊📩",
+        "So‘rovingiz bo‘yicha narxlar va ekish tartibini Directingizga yubordik 📩",
+        "Lichkangizga narx-navo va ko‘chat haqida hamma ma'lumotni tashlab qo‘ydik, aka 🤝🌱",
+    ]
     if kw_match:
         matched_kw, kw_data = kw_match
         intro_text = kw_data["dm_text"]
-        public_reply = kw_data.get("comment_reply", "")
+        public_reply = kw_data.get("comment_reply", "").strip() or random.choice(reply_variants)
     else:
         matched_kw = "Barcha_Komment"
         intro_text = "Assalomu alaykum! 🌱 Angrendagi «Malinachi_» ko‘chatxonasiga xush kelibsiz (Atlant va Maravilla navlari)."
-        public_reply = "Directingizga batafsil ma'lumot yubordik! 📩"
+        public_reply = random.choice(reply_variants)
 
     q1 = await crm_sheets.get_funnel_text("QADAM_1_HAJM")
     full_dm = f"{intro_text}\n\n{q1}"
-    dm_ok, _ = await ig_send_private_reply(comment_id, full_dm)
+    dm_ok, dm_err = await ig_send_private_reply(comment_id, full_dm)
 
     if dm_ok:
         if public_reply:
@@ -253,12 +263,13 @@ async def send_initial_comment_dm(
                 schedule_followup_hours=23.0,
             )
     else:
-        # 2.2: 7 kundan oshgan komment bo'lsa -> izoh ostiga "Directimizga yozing" deb yozamiz
-        fallback_comment = (
-            "Assalomu alaykum! рџЊ± KoвЂchatlar narxi va ekish boвЂyicha batafsil maвЂ™lumot olish uchun "
-            "Directimizga «HA» deb yozib yuboring, mutaxassisimiz darhol javob beradi 📩"
-        )
-        await ig_reply_to_comment(comment_id, fallback_comment)
+        err_low = str(dm_err).lower()
+        if "already" not in err_low and "duplicate" not in err_low and "10903" not in err_low:
+            fallback_comment = (
+                "Assalomu alaykum! 🌱 Ko‘chatlar narxi va ekish bo‘yicha batafsil ma’lumot olish uchun "
+                "Directimizga «HA» deb yozib yuboring, mutaxassisimiz darhol javob beradi 📩"
+            )
+            await ig_reply_to_comment(comment_id, fallback_comment)
 
     # 1.1: Har qanday holatda ham kommentni "ko'rildi" deb belgilaymiz
     await mark_ig_comment_processed(comment_id, commenter_id, commenter_username)
