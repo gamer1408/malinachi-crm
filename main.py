@@ -843,7 +843,10 @@ async def lifespan(app: FastAPI):
 
     if WEBHOOK_BASE_URL:
         tg_webhook_url = f"{WEBHOOK_BASE_URL}/webhook/telegram"
-        await bot.set_webhook(url=tg_webhook_url, drop_pending_updates=True)
+        try:
+            await bot.set_webhook(url=tg_webhook_url, drop_pending_updates=True, request_timeout=15)
+        except Exception as e:
+            logging.warning(f"Telegram set_webhook timeout/xatolik (server ishlashda davom etadi): {e}")
         logger.info("Telegram Webhook o'rnatildi: %s", tg_webhook_url)
 
     worker_followup = asyncio.create_task(followup_background_worker())
