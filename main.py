@@ -81,17 +81,22 @@ def classify_volume(text: str) -> Tuple[str, str]:
     if clean == "3":
         return "3000+ ta", "VIP_Ulgurji"
 
-    numbers = [int(n) for n in re.findall(r"\d+", clean.replace(" ", ""))]
-    if not numbers:
-        return clean, "Tomorqa"
+    low = clean.lower()
+    numbers = [int(n) for n in re.findall(r"\d+", low.replace(" ", ""))]
+    max_num = max(numbers) if numbers else 0
 
-    max_num = max(numbers)
-    if max_num >= 3000:
-        return f"{max_num} ta", "VIP_Ulgurji"
+    if any(k in low for k in ("gektar", "гектар", "ga", "га", "ming", "минг")):
+        segment = "VIP_Ulgurji" if (max_num >= 3 or "gektar" in low or "гектар" in low or "ga" in low or "га" in low) else "Biznes"
+    elif any(k in low for k in ("sotix", "сотих", "sotih", "sotik", "сотик")):
+        segment = "VIP_Ulgurji" if max_num >= 20 else ("Biznes" if max_num >= 4 else "Tomorqa")
+    elif max_num >= 3000:
+        segment = "VIP_Ulgurji"
     elif max_num >= 500:
-        return f"{max_num} ta", "Biznes"
+        segment = "Biznes"
     else:
-        return f"{max_num} ta", "Tomorqa"
+        segment = "Tomorqa"
+
+    return clean, segment
 
 
 def normalize_uz_phone(text: str) -> Optional[str]:
