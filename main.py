@@ -227,7 +227,7 @@ async def send_initial_comment_dm(
         public_reply = kw_data.get("comment_reply", "")
     else:
         matched_kw = "Barcha_Komment"
-        intro_text = "Assalomu alaykum! рџЊ± Angrendagi В«Malinachi_В» koвЂchatxonasiga xush kelibsiz (Atlant va Maravilla navlari)."
+        intro_text = "Assalomu alaykum! 🌱 Angrendagi «Malinachi_» ko‘chatxonasiga xush kelibsiz (Atlant va Maravilla navlari)."
         public_reply = "Directingizga batafsil ma'lumot yubordik! 📩"
 
     q1 = await crm_sheets.get_funnel_text("QADAM_1_HAJM")
@@ -442,7 +442,8 @@ async def process_funnel_message(
         phone = normalize_uz_phone(text)
         if not phone:
             return (
-                "Telefon raqam formati biroz notoвЂgвЂri kiritildi рџЉ\n"
+                "Telefon raqam formati biroz noto‘g‘ri kiritildi 🙏
+"
                 "Iltimos, 9 ta raqam yoki +998 bilan yozing (Masalan: +998901234567):",
                 None,
                 None,
@@ -459,7 +460,7 @@ async def process_funnel_message(
         )
 
         confirm_text = (
-            f"📋 Ma'lumotlaringizni tekshirib oling:\n\n🌱 Ko'chat hajmi: {updated.get('volume', '-')}\n📍 Hudud: {updated.get('region', '-')}\n📞 Telefon: {phone}\n\nBarchasi to'g'rimi? Tasdiqlaysizmi?"
+            f"📋 Ma'lumotlaringizni tekshirib oling:\n\n🌱 Ko'chat hajmi: {updated.get('volume_text', '-')}\n📍 Hudud: {updated.get('region', '-')}\n📞 Telefon: {phone}\n\nBarchasi to'g'rimi? Tasdiqlaysizmi?"
         )
         tg_kb = None
         if platform == "TG_Bot":
@@ -546,11 +547,14 @@ async def process_funnel_message(
             step="WAIT_VOLUME",
             schedule_followup_hours=23.0,
         )
-        return f"Yangi soвЂrov boshlaymiz рџЊ±\n\n{q1}", None, None
+        return f"Yangi so‘rov boshlaymiz 🌱
+
+{q1}", None, None
 
     return (
-        "Sizning soвЂrovingiz bazamizga qabul qilingan вњ… Mutaxassisimiz tez orada bogвЂlanadi.\n"
-        "Yangi hisob-kitob boshlash uchun В«HaВ» deb yozing.",
+        "Sizning so‘rovingiz bazamizga qabul qilingan ✅ Mutaxassisimiz tez orada bog‘lanadi.
+"
+        "Yangi hisob-kitob boshlash uchun «Ha» deb yozing.",
         None,
         ["✅ Ha"],
     )
