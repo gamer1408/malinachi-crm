@@ -442,8 +442,7 @@ async def process_funnel_message(
         phone = normalize_uz_phone(text)
         if not phone:
             return (
-                "Telefon raqam formati biroz noto‘g‘ri kiritildi 🙏
-"
+                "Telefon raqam formati biroz noto‘g‘ri kiritildi 🙏\n"
                 "Iltimos, 9 ta raqam yoki +998 bilan yozing (Masalan: +998901234567):",
                 None,
                 None,
@@ -547,13 +546,10 @@ async def process_funnel_message(
             step="WAIT_VOLUME",
             schedule_followup_hours=23.0,
         )
-        return f"Yangi so‘rov boshlaymiz 🌱
-
-{q1}", None, None
+        return f"Yangi so‘rov boshlaymiz 🌱\n\n{q1}", None, None
 
     return (
-        "Sizning so‘rovingiz bazamizga qabul qilingan ✅ Mutaxassisimiz tez orada bog‘lanadi.
-"
+        "Sizning so‘rovingiz bazamizga qabul qilingan ✅ Mutaxassisimiz tez orada bog‘lanadi.\n"
         "Yangi hisob-kitob boshlash uchun «Ha» deb yozing.",
         None,
         ["✅ Ha"],
