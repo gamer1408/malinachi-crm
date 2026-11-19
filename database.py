@@ -46,7 +46,18 @@ async def init_db() -> None:
             username TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
-    """)
+        """)
+        await db.execute("""
+        CREATE TABLE IF NOT EXISTS unique_contacts (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            ig_business_id TEXT NOT NULL,
+            customer_ig_id TEXT NOT NULL,
+            year_month TEXT NOT NULL,
+            first_seen_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(ig_business_id, customer_ig_id, year_month)
+        )
+        """)
+        await db.commit()
 
 
 async def get_session(platform: str, user_id: str) -> Optional[Dict[str, Any]]:
@@ -245,3 +256,31 @@ async def mark_ig_comment_processed(comment_id: str, user_id: str, username: str
 
 async def clear_admin_state(admin_id: str) -> None:
     await set_admin_state(str(admin_id), "", {})
+
+async def register_unique_contact(ig_business_id: str, customer_ig_id: str) -> bool:
+    """Har oyda (ig_business_id + customer_ig_id + YYYY-MM) juftligini 1 marta yozadi.
+    Yangi noyob kontakt bo'lsa True, shu oyda avval yozilgan bo'lsa False qaytaradi."""
+    if not ig_business_id or not customer_ig_id:
+        return False
+    ym = time.strftime("%Y-%m", time.gmtime())
+    async with aiosqlite.connect(DB_PATH) as db:
+        cur = await db.execute(
+            """
+            INSERT OR IGNORE INTO unique_contacts (ig_business_id, customer_ig_id, year_month)
+            VALUES (?, ?, ?)
+            """,
+            (str(ig_business_id), str(customer_ig_id), ym),
+        )
+        await db.commit()
+        return cur.rowcount == 1
+
+
+async def get_monthly_unique_contacts_count(ig_business_id: str, year_month: Optional[str] = None) -> int:
+    ym = year_month or time.strftime("%Y-%m", time.gmtime())
+    async with aiosqlite.connect(DB_PATH) as db:
+        async with db.execute(
+            "SELECT COUNT(*) FROM unique_contacts WHERE ig_business_id = ? AND year_month = ?",
+            (str(ig_business_id), ym),
+        ) as cur:
+            row = await cur.fetchone()
+            return int(row[0]) if row else 0

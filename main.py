@@ -35,6 +35,7 @@ from database import (
     is_ig_user_recently_messaged,
     mark_followup_sent,
     mark_ig_comment_processed,
+    register_unique_contact,
     set_admin_state,
     upsert_session,
 )
@@ -250,7 +251,17 @@ async def send_initial_comment_dm(
         return
     _IN_FLIGHT_COMMENTS.add(comment_id)
 
-    if await is_ig_user_recently_messaged(commenter_id):
+    existing_session = await get_session("IG_DM", commenter_id) if commenter_id else None
+    if existing_session or await is_ig_user_recently_messaged(commenter_id):
+        # Avval DM yuborilgan / suhbat boshlangan: sessiyani buzmaymiz (overwrite yo'q) va qayta DM yubormaymiz,
+        # lekin yangi kommenti javobsiz qolmasligi uchun izoh ostiga eslatma yozamiz.
+        await register_unique_contact(IG_BUSINESS_ACCOUNT_ID, commenter_id)
+        already_dm_replies = [
+            "Directingizga avval batafsil ma'lumot yuborganmiz, lichkangizni bir tekshirib ko‘ring 😊📩",
+            "Ma'lumot va narxlarni Directingizga yuborib qo‘yganmiz, lichkangizga qarang 📩",
+            "Lichkangizga tashlab qo‘yganmiz aka, Directni ochib ko‘ring 🤝📩",
+        ]
+        await ig_reply_to_comment(comment_id, random.choice(already_dm_replies))
         await mark_ig_comment_processed(comment_id, commenter_id, commenter_username)
         return
 
@@ -276,6 +287,7 @@ async def send_initial_comment_dm(
     dm_ok, dm_err = await ig_send_private_reply(comment_id, full_dm)
 
     if dm_ok:
+        await register_unique_contact(IG_BUSINESS_ACCOUNT_ID, commenter_id)
         if public_reply:
             await ig_reply_to_comment(comment_id, public_reply)
         if commenter_id:
