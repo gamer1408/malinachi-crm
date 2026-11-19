@@ -209,18 +209,42 @@ async def ig_send_dm(
         return True
 
 
+_MEDIA_PERMALINK_CACHE: Dict[str, str] = {}
+
+
+async def get_ig_media_permalink(media_id: str) -> str:
+    if not media_id or not IG_ACCESS_TOKEN:
+        return ""
+    if media_id in _MEDIA_PERMALINK_CACHE:
+        return _MEDIA_PERMALINK_CACHE[media_id]
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            resp = await client.get(
+                f"{IG_GRAPH_URL}/{media_id}",
+                params={"fields": "permalink", "access_token": IG_ACCESS_TOKEN},
+            )
+            if resp.status_code == 200:
+                link = resp.json().get("permalink", "")
+                if link:
+                    _MEDIA_PERMALINK_CACHE[media_id] = link
+                    return link
+    except Exception as exc:
+        logger.warning("Media permalink olishda xato (%s): %s", media_id, exc)
+    return ""
+
+
 async def send_initial_comment_dm(
     comment_id: str,
     commenter_id: str,
     commenter_username: str,
     comment_text: str,
+    media_permalink: str = "",
 ) -> None:
     """
-    1.1 & 1.2 & 2.2:
+    Google Sheets (Reels_KalitSozlar) qoidalari asosida:
     - Kommentga yoki userga allaqachon yozilgan bo'lsa o'tkazib yuboradi.
-    - Private Reply yuborishga urinadi.
-    - Agar 7 kunlik limit sababli DM ketmasa, izoh ostiga "Directimizga yozing" deb yozadi.
-    - Har qanday holatda ham kommentni bazaga "ko'rildi" deb belgilaydi.
+    - Reels_Link va Kalit_Soz mos kelsagina javob beradi.
+    - Javob_1_Samimiy, Javob_2_Rasmiy, Javob_3_Dehqoncha dan tasodifiy bittasini tanlaydi.
     """
     if comment_id in _IN_FLIGHT_COMMENTS or await is_ig_comment_processed(comment_id):
         return
@@ -230,20 +254,22 @@ async def send_initial_comment_dm(
         await mark_ig_comment_processed(comment_id, commenter_id, commenter_username)
         return
 
-    kw_match = await crm_sheets.get_keyword_data(comment_text)
-    reply_variants = [
+    kw_match = await crm_sheets.get_keyword_data(comment_text, media_permalink=media_permalink)
+    if not kw_match:
+        await mark_ig_comment_processed(comment_id, commenter_id, commenter_username)
+        return
+
+    matched_kw, kw_data = kw_match
+    intro_text = kw_data.get("dm_text", "").strip() or (
+        "Assalomu alaykum! 🌱 Angrendagi «Malinachi_» ko‘chatxonasiga xush kelibsiz (Atlant va Maravilla navlari)."
+    )
+    sheet_replies = kw_data.get("replies", [])
+    default_variants = [
         "Directingizga batafsil ma'lumot va narxlarni yubordik, bir ko‘rib chiqing 😊📩",
         "So‘rovingiz bo‘yicha narxlar va ekish tartibini Directingizga yubordik 📩",
         "Lichkangizga narx-navo va ko‘chat haqida hamma ma'lumotni tashlab qo‘ydik, aka 🤝🌱",
     ]
-    if kw_match:
-        matched_kw, kw_data = kw_match
-        intro_text = kw_data["dm_text"]
-        public_reply = kw_data.get("comment_reply", "").strip() or random.choice(reply_variants)
-    else:
-        matched_kw = "Barcha_Komment"
-        intro_text = "Assalomu alaykum! 🌱 Angrendagi «Malinachi_» ko‘chatxonasiga xush kelibsiz (Atlant va Maravilla navlari)."
-        public_reply = random.choice(reply_variants)
+    public_reply = random.choice(sheet_replies if sheet_replies else default_variants)
 
     q1 = await crm_sheets.get_funnel_text("QADAM_1_HAJM")
     full_dm = f"{intro_text}\n\n{q1}"
@@ -786,6 +812,7 @@ async def ig_comment_queue_worker() -> None:
                 commenter_id=item["commenter_id"],
                 commenter_username=item["commenter_username"],
                 comment_text=item["comment_text"],
+                media_permalink=item.get("media_permalink", ""),
             )
         except Exception as exc:
             logger.error("IG Comment Queue worker xatosi: %s", exc)
@@ -809,7 +836,7 @@ async def old_comments_background_worker() -> None:
                 # 1. Oxirgi 5 ta post/Reels ID larini olamiz
                 media_resp = await client.get(
                     f"{IG_GRAPH_URL}/me/media",
-                    params={"fields": "id", "limit": 5, "access_token": IG_ACCESS_TOKEN},
+                    params={"fields": "id,permalink", "limit": 5, "access_token": IG_ACCESS_TOKEN},
                 )
                 if media_resp.status_code != 200:
                     logger.error("Media ro'yxatini olishda xato: %s", media_resp.text)
@@ -822,6 +849,7 @@ async def old_comments_background_worker() -> None:
                     if answered_one:
                         break
                     m_id = media.get("id")
+                    m_permalink = media.get("permalink", "")
                     c_resp = await client.get(
                         f"{IG_GRAPH_URL}/{m_id}/comments",
                         params={"fields": "id,text,from", "limit": 50, "access_token": IG_ACCESS_TOKEN},
@@ -952,11 +980,15 @@ async def instagram_event_webhook(request: Request) -> Dict[str, str]:
             if not comment_id or not comment_text or commenter_id == IG_BUSINESS_ACCOUNT_ID:
                 continue
 
+            media_obj = val.get("media") or {}
+            media_id = str(media_obj.get("id", ""))
+            media_permalink = await get_ig_media_permalink(media_id) if media_id else ""
             await ig_comment_queue.put({
                 "comment_id": comment_id,
                 "commenter_id": commenter_id,
                 "commenter_username": commenter_username,
                 "comment_text": comment_text,
+                "media_permalink": media_permalink,
             })
 
     return {"status": "received"}
