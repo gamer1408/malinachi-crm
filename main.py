@@ -1,4 +1,4 @@
-import asyncio
+﻿import asyncio
 import logging
 import os
 import re
@@ -54,7 +54,7 @@ WEBHOOK_BASE_URL = os.getenv("WEBHOOK_BASE_URL", "").rstrip("/")
 IG_ACCESS_TOKEN = os.getenv("IG_ACCESS_TOKEN", "")
 IG_BUSINESS_ACCOUNT_ID = os.getenv("IG_BUSINESS_ACCOUNT_ID", "")
 IG_VERIFY_TOKEN = os.getenv("IG_VERIFY_TOKEN", "malinachi_angren_2026_secret")
-IG_GRAPH_URL = "https://graph.instagram.com/v21.0"
+IG_GRAPH_URL = "https://graph.facebook.com/v21.0"
 
 if not TG_BOT_TOKEN:
     raise RuntimeError("TG_BOT_TOKEN .env faylida topilmadi!")
@@ -227,8 +227,8 @@ async def send_initial_comment_dm(
         public_reply = kw_data.get("comment_reply", "")
     else:
         matched_kw = "Barcha_Komment"
-        intro_text = "Assalomu alaykum! 🌱 Angrendagi «Malinachi_» ko‘chatxonasiga xush kelibsiz (Atlant va Maravilla navlari)."
-        public_reply = "Directingizga batafsil ma'lumot yubordik! 📩"
+        intro_text = "Assalomu alaykum! рџЊ± Angrendagi В«Malinachi_В» koвЂchatxonasiga xush kelibsiz (Atlant va Maravilla navlari)."
+        public_reply = "Directingizga batafsil ma'lumot yubordik! рџ“©"
 
     q1 = await crm_sheets.get_funnel_text("QADAM_1_HAJM")
     full_dm = f"{intro_text}\n\n{q1}"
@@ -250,8 +250,8 @@ async def send_initial_comment_dm(
     else:
         # 2.2: 7 kundan oshgan komment bo'lsa -> izoh ostiga "Directimizga yozing" deb yozamiz
         fallback_comment = (
-            "Assalomu alaykum! 🌱 Ko‘chatlar narxi va ekish bo‘yicha batafsil ma’lumot olish uchun "
-            "Directimizga «HA» deb yozib yuboring, mutaxassisimiz darhol javob beradi 📩"
+            "Assalomu alaykum! рџЊ± KoвЂchatlar narxi va ekish boвЂyicha batafsil maвЂ™lumot olish uchun "
+            "Directimizga В«HAВ» deb yozib yuboring, mutaxassisimiz darhol javob beradi рџ“©"
         )
         await ig_reply_to_comment(comment_id, fallback_comment)
 
@@ -264,17 +264,17 @@ def build_admin_lead_keyboard(lead_id: str) -> InlineKeyboardMarkup:
         inline_keyboard=[
             [
                 InlineKeyboardButton(
-                    text="📞 Aloqaga chiqildi",
+                    text="рџ“ћ Aloqaga chiqildi",
                     callback_data=f"crm_status:{lead_id}:Aloqaga_chiqildi",
                 ),
                 InlineKeyboardButton(
-                    text="💰 Zaklad olindi",
+                    text="рџ’° Zaklad olindi",
                     callback_data=f"crm_deposit:{lead_id}",
                 ),
             ],
             [
                 InlineKeyboardButton(
-                    text="❌ Rad etildi",
+                    text="вќЊ Rad etildi",
                     callback_data=f"crm_status:{lead_id}:Rad_etildi",
                 )
             ],
@@ -298,20 +298,20 @@ async def notify_admin_new_lead(
 
     vip_banner = ""
     if segment == "VIP_Ulgurji":
-        vip_banner = "🔥🔥🔥 <b>DIQQAT: VIP ULGURJI MIJOZ!</b> 🔥🔥🔥\n\n"
+        vip_banner = "рџ”Ґрџ”Ґрџ”Ґ <b>DIQQAT: VIP ULGURJI MIJOZ!</b> рџ”Ґрџ”Ґрџ”Ґ\n\n"
 
     text = (
         f"{vip_banner}"
-        f"🌱 <b>YANGI LID — {lead_id}</b>\n"
-        f"━━━━━━━━━━━━━━━━━━━━\n"
-        f"📡 <b>Manba:</b> {source}\n"
-        f"👤 <b>Mijoz:</b> {full_name} ({username_or_id})\n"
-        f"📞 <b>Telefon:</b> <code>{phone}</code>\n"
-        f"📍 <b>Hudud:</b> {region}\n"
-        f"🌿 <b>Hajm:</b> {volume_text}\n"
-        f"🏷 <b>Segment:</b> <b>{segment}</b>\n"
-        f"🔑 <b>Kalit so'z:</b> {keyword or 'To‘g‘ridan-to‘g‘ri'}\n"
-        f"━━━━━━━━━━━━━━━━━━━━\n"
+        f"рџЊ± <b>YANGI LID вЂ” {lead_id}</b>\n"
+        f"в”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓ\n"
+        f"рџ“Ў <b>Manba:</b> {source}\n"
+        f"рџ‘¤ <b>Mijoz:</b> {full_name} ({username_or_id})\n"
+        f"рџ“ћ <b>Telefon:</b> <code>{phone}</code>\n"
+        f"рџ“Ќ <b>Hudud:</b> {region}\n"
+        f"рџЊї <b>Hajm:</b> {volume_text}\n"
+        f"рџЏ· <b>Segment:</b> <b>{segment}</b>\n"
+        f"рџ”‘ <b>Kalit so'z:</b> {keyword or 'ToвЂgвЂridan-toвЂgвЂri'}\n"
+        f"в”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓ\n"
         f"<i>Holatni boshqarish uchun tugmani bosing:</i>"
     )
 
@@ -352,7 +352,7 @@ async def process_funnel_message(
 
     # 0-BOSQICH: YANGI SUHBAT (IG DM uchun "Ha" tugmasi bilan kutib olish - 2.2)
     if step == "IDLE":
-        if platform == "IG_DM" and clean_lower not in ("ha", "✅ ha", "yes"):
+        if platform == "IG_DM" and clean_lower not in ("ha", "вњ… ha", "yes"):
             await upsert_session(
                 platform=platform,
                 user_id=user_id,
@@ -363,12 +363,12 @@ async def process_funnel_message(
                 schedule_followup_hours=23.0,
             )
             welcome_dm = (
-                "Assalomu alaykum, xush kelibsiz! 🌱\n"
-                "Bu «Malinachi_» (Angren ko‘chatzor) rasmiy sahifasi. "
-                "Atlant va Maravilla malina ko‘chatlari haqida ma’lumot olishni istasangiz, "
-                "pastdagi «✅ Ha» tugmasini bosing 👇"
+                "Assalomu alaykum, xush kelibsiz! рџЊ±\n"
+                "Bu В«Malinachi_В» (Angren koвЂchatzor) rasmiy sahifasi. "
+                "Atlant va Maravilla malina koвЂchatlari haqida maвЂ™lumot olishni istasangiz, "
+                "pastdagi В«вњ… HaВ» tugmasini bosing рџ‘‡"
             )
-            return welcome_dm, None, ["✅ Ha"]
+            return welcome_dm, None, ["вњ… Ha"]
 
         # Telegram yoki darhol "Ha" deb yozganlar uchun 1-savolga o'tish
         step = "WAIT_START_CONFIRM"
@@ -389,9 +389,9 @@ async def process_funnel_message(
         if platform == "TG_Bot":
             kb = ReplyKeyboardMarkup(
                 keyboard=[
-                    [KeyboardButton(text="1️⃣ 100 – 300 ta (Tomorqa)")],
-                    [KeyboardButton(text="2️⃣ 500 – 2000 ta (Biznes)")],
-                    [KeyboardButton(text="3️⃣ 3000+ ta (VIP Ulgurji)")],
+                    [KeyboardButton(text="1пёЏвѓЈ 100 вЂ“ 300 ta (Tomorqa)")],
+                    [KeyboardButton(text="2пёЏвѓЈ 500 вЂ“ 2000 ta (Biznes)")],
+                    [KeyboardButton(text="3пёЏвѓЈ 3000+ ta (VIP Ulgurji)")],
                 ],
                 resize_keyboard=True,
                 one_time_keyboard=True,
@@ -418,7 +418,7 @@ async def process_funnel_message(
     if step == "WAIT_REGION":
         region = text.strip()
         if len(region) < 2:
-            return "Iltimos, viloyat va tuman nomini to‘liqroq yozing (masalan: Farg‘ona, Quva tumani):", None, None
+            return "Iltimos, viloyat va tuman nomini toвЂliqroq yozing (masalan: FargвЂona, Quva tumani):", None, None
 
         q3 = await crm_sheets.get_funnel_text("QADAM_3_TELEFON")
         await upsert_session(
@@ -434,7 +434,7 @@ async def process_funnel_message(
         kb = None
         if platform == "TG_Bot":
             kb = ReplyKeyboardMarkup(
-                keyboard=[[KeyboardButton(text="📱 Telefon raqamni yuborish", request_contact=True)]],
+                keyboard=[[KeyboardButton(text="рџ“± Telefon raqamni yuborish", request_contact=True)]],
                 resize_keyboard=True,
                 one_time_keyboard=True,
             )
@@ -445,7 +445,7 @@ async def process_funnel_message(
         phone = normalize_uz_phone(text)
         if not phone:
             return (
-                "Telefon raqam formati biroz noto‘g‘ri kiritildi 😊\n"
+                "Telefon raqam formati biroz notoвЂgвЂri kiritildi рџЉ\n"
                 "Iltimos, 9 ta raqam yoki +998 bilan yozing (Masalan: +998901234567):",
                 None,
                 None,
@@ -462,20 +462,20 @@ async def process_funnel_message(
         )
 
         confirm_text = (
-            "📋 Ma'lumotlaringizni tekshirib oling:\n\n"
-            f"🌿 Ko‘chat hajmi: {updated['volume_text']}\n"
-            f"📍 Hudud: {updated['region']}\n"
-            f"📞 Telefon: {phone}\n\n"
-            "Barchasi to‘g‘rimi? Tasdiqlaysizmi? (Ha / Yo‘q)"
+            "рџ“‹ Ma'lumotlaringizni tekshirib oling:\n\n"
+            f"рџЊї KoвЂchat hajmi: {updated['volume_text']}\n"
+            f"рџ“Ќ Hudud: {updated['region']}\n"
+            f"рџ“ћ Telefon: {phone}\n\n"
+            "Barchasi toвЂgвЂrimi? Tasdiqlaysizmi? (Ha / YoвЂq)"
         )
         tg_kb = None
         if platform == "TG_Bot":
             tg_kb = ReplyKeyboardMarkup(
-                keyboard=[[KeyboardButton(text="✅ Ha, to'g'ri"), KeyboardButton(text="🔄 Yo'q, qaytadan")]],
+                keyboard=[[KeyboardButton(text="вњ… Ha, to'g'ri"), KeyboardButton(text="рџ”„ Yo'q, qaytadan")]],
                 resize_keyboard=True,
                 one_time_keyboard=True,
             )
-        return confirm_text, tg_kb, ["✅ Ha", "🔄 Yo'q"]
+        return confirm_text, tg_kb, ["вњ… Ha", "рџ”„ Yo'q"]
 
     # 4-BOSQICH: TASDIQLASH LOOPI (1.4)
     if step == "WAIT_CONFIRM":
@@ -514,8 +514,8 @@ async def process_funnel_message(
             )
 
             final_msg = (
-                "Rahmat! ✅ Ma'lumotlaringiz muvaffaqiyatli qabul qilindi.\n"
-                "Mutaxassisimiz tez orada siz bilan bog‘lanib, barcha savollaringizga javob beradi 🌱"
+                "Rahmat! вњ… Ma'lumotlaringiz muvaffaqiyatli qabul qilindi.\n"
+                "Mutaxassisimiz tez orada siz bilan bogвЂlanib, barcha savollaringizga javob beradi рџЊ±"
             )
             return final_msg, ReplyKeyboardRemove() if platform == "TG_Bot" else None, None
 
@@ -534,14 +534,14 @@ async def process_funnel_message(
             if platform == "TG_Bot":
                 tg_kb = ReplyKeyboardMarkup(
                     keyboard=[
-                        [KeyboardButton(text="1️⃣ 100 – 300 ta (Tomorqa)")],
-                        [KeyboardButton(text="2️⃣ 500 – 2000 ta (Biznes)")],
-                        [KeyboardButton(text="3️⃣ 3000+ ta (VIP Ulgurji)")],
+                        [KeyboardButton(text="1пёЏвѓЈ 100 вЂ“ 300 ta (Tomorqa)")],
+                        [KeyboardButton(text="2пёЏвѓЈ 500 вЂ“ 2000 ta (Biznes)")],
+                        [KeyboardButton(text="3пёЏвѓЈ 3000+ ta (VIP Ulgurji)")],
                     ],
                     resize_keyboard=True,
                     one_time_keyboard=True,
                 )
-            return f"Tushunarli, ma'lumotlarni qaytadan kiritamiz 🔄\n\n{q1}", tg_kb, None
+            return f"Tushunarli, ma'lumotlarni qaytadan kiritamiz рџ”„\n\n{q1}", tg_kb, None
 
     # COMPLETED holatidan keyin yana yozsa -> Loop qilib qaytadan boshlash taklifi
     if any(w in clean_lower for w in ("ha", "malina", "qaytadan", "yana")):
@@ -554,13 +554,13 @@ async def process_funnel_message(
             step="WAIT_VOLUME",
             schedule_followup_hours=23.0,
         )
-        return f"Yangi so‘rov boshlaymiz 🌱\n\n{q1}", None, None
+        return f"Yangi soвЂrov boshlaymiz рџЊ±\n\n{q1}", None, None
 
     return (
-        "Sizning so‘rovingiz bazamizga qabul qilingan ✅ Mutaxassisimiz tez orada bog‘lanadi.\n"
-        "Yangi hisob-kitob boshlash uchun «Ha» deb yozing.",
+        "Sizning soвЂrovingiz bazamizga qabul qilingan вњ… Mutaxassisimiz tez orada bogвЂlanadi.\n"
+        "Yangi hisob-kitob boshlash uchun В«HaВ» deb yozing.",
         None,
-        ["✅ Ha"],
+        ["вњ… Ha"],
     )
 
 
@@ -594,26 +594,26 @@ async def cmd_start(message: Message) -> None:
 async def cmd_stat(message: Message) -> None:
     if not message.from_user or str(message.from_user.id) != ADMIN_CHAT_ID:
         return
-    wait_msg = await message.answer("⏳ Google Sheets statistikasi yuklanmoqda...")
+    wait_msg = await message.answer("вЏі Google Sheets statistikasi yuklanmoqda...")
     try:
         st = await crm_sheets.get_stats()
         report = (
-            "📊 <b>MALINACHI_ — SOTUV VA CRM HISOBOTI</b>\n"
-            "━━━━━━━━━━━━━━━━━━━━\n"
-            f"👥 <b>Jami lidlar:</b> {st['total_leads']} ta\n"
-            f"🆕 <b>Bugungi lidlar:</b> {st['today_leads']} ta\n"
-            f"🔥 <b>VIP Ulgurji (3000+):</b> {st['vip_leads']} ta\n"
-            f"💰 <b>Zaklad to‘laganlar:</b> {st['paid_leads']} ta\n"
-            "━━━━━━━━━━━━━━━━━━━━\n"
-            f"🌱 <b>Band qilingan ko‘chatlar:</b> {st['total_qty']:,} dona\n"
-            f"💵 <b>Tushgan zaklad:</b> {st['total_deposit']:,} so‘m\n"
-            f"⏳ <b>Kutilayotgan qoldiq:</b> {st['total_remaining']:,} so‘m\n"
-            f"📈 <b>Jami shartnoma summasi:</b> {st['total_contract']:,} so‘m"
+            "рџ“Љ <b>MALINACHI_ вЂ” SOTUV VA CRM HISOBOTI</b>\n"
+            "в”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓ\n"
+            f"рџ‘Ґ <b>Jami lidlar:</b> {st['total_leads']} ta\n"
+            f"рџ†• <b>Bugungi lidlar:</b> {st['today_leads']} ta\n"
+            f"рџ”Ґ <b>VIP Ulgurji (3000+):</b> {st['vip_leads']} ta\n"
+            f"рџ’° <b>Zaklad toвЂlaganlar:</b> {st['paid_leads']} ta\n"
+            "в”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓ\n"
+            f"рџЊ± <b>Band qilingan koвЂchatlar:</b> {st['total_qty']:,} dona\n"
+            f"рџ’µ <b>Tushgan zaklad:</b> {st['total_deposit']:,} soвЂm\n"
+            f"вЏі <b>Kutilayotgan qoldiq:</b> {st['total_remaining']:,} soвЂm\n"
+            f"рџ“€ <b>Jami shartnoma summasi:</b> {st['total_contract']:,} soвЂm"
         ).replace(",", " ")
         await wait_msg.edit_text(report)
     except Exception as exc:
         logger.error("Statistika xatosi: %s", exc)
-        await wait_msg.edit_text(f"❌ Statistikani olishda xatolik: {exc}")
+        await wait_msg.edit_text(f"вќЊ Statistikani olishda xatolik: {exc}")
 
 
 @router.callback_query(F.data.startswith("crm_status:"))
@@ -627,7 +627,7 @@ async def cb_update_status(callback: CallbackQuery) -> None:
     if ok and callback.message:
         old_text = callback.message.html_text or ""
         await callback.message.edit_text(
-            f"{old_text}\n\n✅ <b>Status yangilandi:</b> <code>{new_status}</code>",
+            f"{old_text}\n\nвњ… <b>Status yangilandi:</b> <code>{new_status}</code>",
             reply_markup=build_admin_lead_keyboard(lead_id),
         )
     else:
@@ -648,7 +648,7 @@ async def cb_start_deposit(callback: CallbackQuery) -> None:
     await callback.answer()
     if callback.message:
         await callback.message.answer(
-            f"💰 <b>{lead_id}</b> uchun zaklad ma'lumotlarini quyidagi formatda yuboring:\n"
+            f"рџ’° <b>{lead_id}</b> uchun zaklad ma'lumotlarini quyidagi formatda yuboring:\n"
             "<code>ko'chat_soni zaklad_summasi [nav]</code>\n\n"
             "<i>Masalan:</i> <code>1000 5000000 Atlant</code>\n"
             "<i>(Bekor qilish uchun: /cancel)</i>"
@@ -659,7 +659,7 @@ async def cb_start_deposit(callback: CallbackQuery) -> None:
 async def cmd_cancel(message: Message) -> None:
     if message.from_user and str(message.from_user.id) == ADMIN_CHAT_ID:
         await clear_admin_state(str(message.from_user.id))
-        await message.answer("Amal bekor qilindi ✅")
+        await message.answer("Amal bekor qilindi вњ…")
 
 
 @router.message(F.contact)
@@ -688,7 +688,7 @@ async def handle_tg_text(message: Message) -> None:
             parts = message.text.strip().split()
             if len(parts) < 2 or not parts[0].isdigit() or not parts[1].isdigit():
                 await message.answer(
-                    "⚠️ Format noto'g'ri. Iltimos, avval ko'chat soni, keyin zaklad summasini yozing.\n"
+                    "вљ пёЏ Format noto'g'ri. Iltimos, avval ko'chat soni, keyin zaklad summasini yozing.\n"
                     "Masalan: <code>1500 7000000 Maravilla</code>"
                 )
                 return
@@ -698,7 +698,7 @@ async def handle_tg_text(message: Message) -> None:
             variety = parts[2].capitalize() if len(parts) >= 3 else "Atlant"
             lead_id = admin_st["payload"].get("lead_id", "")
 
-            wait_m = await message.answer("⏳ Zaklad va moliyaviy jadvalga yozilmoqda...")
+            wait_m = await message.answer("вЏі Zaklad va moliyaviy jadvalga yozilmoqda...")
             res = await crm_sheets.record_deposit(
                 lead_id=lead_id,
                 seedling_qty=qty,
@@ -708,21 +708,21 @@ async def handle_tg_text(message: Message) -> None:
             await clear_admin_state(user_id)
 
             if not res:
-                await wait_m.edit_text(f"❌ {lead_id} raqamli lid topilmadi.")
+                await wait_m.edit_text(f"вќЊ {lead_id} raqamli lid topilmadi.")
                 return
 
             msg_ok = (
-                f"✅ <b>ZAKLAD MUVAFFAQIYATLI RASMIYLASHTIRILDI!</b>\n"
-                f"━━━━━━━━━━━━━━━━━━━━\n"
-                f"🧾 <b>Buyurtma ID:</b> {res['order_id']} ({res['lead_id']})\n"
-                f"👤 <b>Mijoz:</b> {res['client_name']} ({res['phone']})\n"
-                f"📍 <b>Hudud:</b> {res['region']}\n"
-                f"🌱 <b>Nav va Soni:</b> {variety} — {res['qty']:,} dona\n"
-                f"💵 <b>Jami summa:</b> {res['total_amount']:,} so‘m\n"
-                f"💰 <b>To‘langan zaklad:</b> {res['deposit_amount']:,} so‘m\n"
-                f"⏳ <b>Qoldiq summa:</b> {res['remaining_amount']:,} so‘m\n"
-                f"━━━━━━━━━━━━━━━━━━━━\n"
-                f"<i>Ma'lumotlar ham Lidlar_CRM, ham Zaklad_Va_Buyurtmalar varag‘iga yozildi.</i>"
+                f"вњ… <b>ZAKLAD MUVAFFAQIYATLI RASMIYLASHTIRILDI!</b>\n"
+                f"в”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓ\n"
+                f"рџ§ѕ <b>Buyurtma ID:</b> {res['order_id']} ({res['lead_id']})\n"
+                f"рџ‘¤ <b>Mijoz:</b> {res['client_name']} ({res['phone']})\n"
+                f"рџ“Ќ <b>Hudud:</b> {res['region']}\n"
+                f"рџЊ± <b>Nav va Soni:</b> {variety} вЂ” {res['qty']:,} dona\n"
+                f"рџ’µ <b>Jami summa:</b> {res['total_amount']:,} soвЂm\n"
+                f"рџ’° <b>ToвЂlangan zaklad:</b> {res['deposit_amount']:,} soвЂm\n"
+                f"вЏі <b>Qoldiq summa:</b> {res['remaining_amount']:,} soвЂm\n"
+                f"в”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓ\n"
+                f"<i>Ma'lumotlar ham Lidlar_CRM, ham Zaklad_Va_Buyurtmalar varagвЂiga yozildi.</i>"
             ).replace(",", " ")
             await wait_m.edit_text(msg_ok)
             return
