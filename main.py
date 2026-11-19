@@ -54,7 +54,7 @@ WEBHOOK_BASE_URL = os.getenv("WEBHOOK_BASE_URL", "").rstrip("/")
 IG_ACCESS_TOKEN = os.getenv("IG_ACCESS_TOKEN", "")
 IG_BUSINESS_ACCOUNT_ID = os.getenv("IG_BUSINESS_ACCOUNT_ID", "")
 IG_VERIFY_TOKEN = os.getenv("IG_VERIFY_TOKEN", "malinachi_angren_2026_secret")
-IG_GRAPH_URL = "https://graph.facebook.com/v21.0"
+IG_GRAPH_URL = "https://graph.instagram.com/v21.0"
 
 if not TG_BOT_TOKEN:
     raise RuntimeError("TG_BOT_TOKEN .env faylida topilmadi!")
