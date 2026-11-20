@@ -123,6 +123,18 @@ def today_uz_str() -> str:
     return datetime.now(tz).strftime("%Y-%m-%d")
 
 
+def normalize_uz_search(s: str) -> str:
+    s = s.upper().replace("‘", "'").replace("’", "'").replace("`", "'").replace("ʻ", "'")
+    mapping = {
+        "Ў": "O'", "Ғ": "G'", "Ш": "SH", "Ч": "CH", "Ё": "YO", "Ю": "YU", "Я": "YA",
+        "Ц": "TS", "Щ": "SH", "А": "A", "Б": "B", "В": "V", "Г": "G", "Д": "D",
+        "Е": "E", "Ж": "J", "З": "Z", "И": "I", "Й": "Y", "К": "K", "Л": "L",
+        "М": "M", "Н": "N", "О": "O", "П": "P", "Р": "R", "С": "S", "Т": "T",
+        "У": "U", "Ф": "F", "Х": "X", "Ҳ": "H", "Қ": "Q", "Ъ": "'", "Ь": "", "Э": "E",
+    }
+    return "".join(mapping.get(ch, ch) for ch in s)
+
+
 class GoogleSheetsCRM:
     def __init__(self) -> None:
         self.sheet_name = os.getenv("GOOGLE_SHEET_NAME", "MalinachiBaza")
@@ -131,9 +143,9 @@ class GoogleSheetsCRM:
         self.spreadsheet: Optional[gspread.Spreadsheet] = None
 
         # 5 daqiqalik (300 soniya) kesh
-        self._cache_ttl = 300
+        self._cache_ttl = 30
         self._last_cache_time = 0.0
-        self._keywords_cache: Dict[str, Dict[str, str]] = {}
+        self._keywords_cache: List[Dict[str, Any]] = []
         self._texts_cache: Dict[str, str] = dict(DEFAULT_FUNNEL_TEXTS)
 
     def _connect_sync(self) -> None:
@@ -198,18 +210,33 @@ class GoogleSheetsCRM:
         self._connect_sync()
         assert self.spreadsheet is not None
 
-        # 1. Reels_KalitSozlar keshlash
+        # 1. Reels_KalitSozlar keshlash (Reels_Link + Kalit_Soz + 3 xil javob)
         ws_kw = self.spreadsheet.worksheet("Reels_KalitSozlar")
         kw_records = ws_kw.get_all_records()
-        new_kw: Dict[str, Dict[str, str]] = {}
+        new_kw: List[Dict[str, Any]] = []
         for rec in kw_records:
-            kw = str(rec.get("Kalit_Soz", "")).strip().upper()
             active = str(rec.get("Faolmi", "")).strip().upper()
-            if kw and active in ("HA", "YES", "1", "TRUE"):
-                new_kw[kw] = {
-                    "comment_reply": str(rec.get("Izohga_Javob_Matni", "")).strip(),
-                    "dm_text": str(rec.get("DM_1_Xabar_Va_Qollanma_Linki", "")).strip(),
-                }
+            if active not in ("HA", "YES", "1", "TRUE"):
+                continue
+            raw_link = str(rec.get("Reels_Link", "BARCHA")).strip()
+            clean_link = raw_link.split("?")[0].rstrip("/")
+            raw_kws = str(rec.get("Kalit_Soz", "")).strip().upper()
+            kw_list = [k.strip() for k in raw_kws.split(",") if k.strip()]
+            if not kw_list:
+                continue
+            replies = [
+                str(rec.get("Javob_1_Samimiy", "")).strip(),
+                str(rec.get("Javob_2_Rasmiy", "")).strip(),
+                str(rec.get("Javob_3_Dehqoncha", "")).strip(),
+                str(rec.get("Izohga_Javob_Matni", "")).strip(),
+            ]
+            replies = [r for r in replies if r]
+            new_kw.append({
+                "reels_link": clean_link,
+                "kw_list": kw_list,
+                "dm_text": str(rec.get("DM_1_Xabar_Va_Qollanma_Linki", "")).strip(),
+                "replies": replies,
+            })
         self._keywords_cache = new_kw
 
         # 2. DM_Voronka_Matnlar keshlash
@@ -227,16 +254,32 @@ class GoogleSheetsCRM:
     async def initialize(self) -> None:
         await asyncio.to_thread(self._setup_worksheets_sync)
 
-    async def get_keyword_data(self, comment_text: str) -> Optional[Tuple[str, Dict[str, str]]]:
+    async def get_keyword_data(
+        self, comment_text: str, media_permalink: str = ""
+    ) -> Optional[Tuple[str, Dict[str, Any]]]:
         await asyncio.to_thread(self._refresh_cache_sync, False)
-        cleaned = comment_text.strip().upper()
-        # Aniq moslik yoki izoh ichida kalit so'z qatnashganini tekshirish
-        for kw, data in self._keywords_cache.items():
-            if kw == cleaned or kw in cleaned.split():
-                return kw, data
-        for kw, data in self._keywords_cache.items():
-            if kw in cleaned:
-                return kw, data
+        cleaned = normalize_uz_search(comment_text.strip())
+        cleaned_no_apos = cleaned.replace("'", "")
+        clean_media = media_permalink.split("?")[0].rstrip("/")
+
+        specific_rules = []
+        global_rules = []
+        for rule in self._keywords_cache:
+            r_link = rule["reels_link"]
+            if r_link.upper() == "BARCHA" or not r_link:
+                global_rules.append(rule)
+            elif clean_media and (r_link in clean_media or clean_media in r_link):
+                specific_rules.append(rule)
+
+        for rule_group in (specific_rules, global_rules):
+            for rule in rule_group:
+                if "BARCHA" in rule["kw_list"]:
+                    return "BARCHA", rule
+                for raw_kw in rule["kw_list"]:
+                    kw = normalize_uz_search(raw_kw)
+                    kw_no_apos = kw.replace("'", "")
+                    if kw in cleaned or (kw_no_apos and kw_no_apos in cleaned_no_apos):
+                        return raw_kw, rule
         return None
 
     async def get_funnel_text(self, code: str) -> str:
