@@ -839,7 +839,7 @@ async def old_comments_background_worker() -> None:
     hali ko'rilmagan FAQAT 1 TA eski kommentga javob yozadi va to'xtaydi.
     """
     while True:
-        await asyncio.sleep(60)
+        await asyncio.sleep(300)
         if not IG_ACCESS_TOKEN:
             continue
 
